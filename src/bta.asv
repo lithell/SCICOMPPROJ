@@ -9,7 +9,7 @@ function [SV,SAV,SBV,Vfull] = bta(A,B,v,xi,t,hS,mgs,reo)
 % SV    - left-reduced Krylov basis matrix
 % SAV   - left-reduced A times basis matrix
 % SBV   - left-reduced B times basis matrix
-% Vfull - also return full unreduced, non-orthogonal Krylov basis (optional)
+% Vfull - also return full unreduced Krylov basis (optional)
 
 [N,b] = size(v);
 
@@ -100,7 +100,7 @@ for j = 1:length(xi)
 
     % Orthogonalize
     if mgs % modified gram schmidt
-        for reo = 0:1 % Reorthogonalization
+        for reo = 0:1
             for i = 1:t
                 w = w - V(:,1+(i-1)*b:i*b)*(V(:,1+(i-1)*b:i*b)'*w);
             end
@@ -109,16 +109,12 @@ for j = 1:length(xi)
         w = w - V*(V'*w);
     end
 
-    % Normalize w
+    % Norma
     [v,~] = qr(w,0);
-
-    % Add to truncated basis, and discard vectors below truncation length
     V = [ V(:,b+1:end) , v ];
     
-    % Update sketched V
     SV(:,1+j*b:(j+1)*b) = hS(v); 
     
-    % If we want full basis, save v
     if nargout>=4
         Vfull(:,1+j*b:(j+1)*b) = v;
     end

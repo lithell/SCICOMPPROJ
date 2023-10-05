@@ -1,5 +1,5 @@
 clc; clear all; close all
-wathen_size = 5;
+wathen_size = 9;
 
 A = gallery('wathen', wathen_size, wathen_size);
 A = -A; % make sure exp(A) does not explode
@@ -12,19 +12,16 @@ b = b/norm(b);
 
 f = @(x) expm(x);
 
-num_it = round(N/2); % must be less than or half for sketch param, can be changed.
-ex = expm(A)*b;
+num_it = 80;
+%num_it = round(N/2); % must be less than or half for sketch param, can be changed.
 
-num_runs = 1;
+trunc_len = 4;
+mgs = false;
+ex = f(A)*b;
 
-err_mat = zeros(num_it, num_runs);
+err = sketched_FOM_v2(A, b, f, num_it, trunc_len, mgs, ex);
 
-for i = 1:num_runs
-    err = sketched_FOM(A, b, f, num_it, ex);
-    err_mat(:,i) = err;
-end
-
-loglog(1:num_it, err_mat, 'k--o', 'MarkerSize', 10)
+loglog(1:num_it, err, 'k--o', 'MarkerSize', 5)
 grid on 
 xlabel("Number of iterations")
 ylabel("Absolute error")
