@@ -1,4 +1,4 @@
-function [err] = sFOM(A, b, f, num_it, trunc_len, mgs, ex)
+function [err, final_it] = sFOM(A, b, f, num_it, trunc_len, mgs, ex, tol)
 
     %{
     Function for performing the sketched FOM iterations.
@@ -14,6 +14,7 @@ function [err] = sFOM(A, b, f, num_it, trunc_len, mgs, ex)
     % Initializations
     N = size(A,1);
     err = zeros(num_it,1);
+    final_it = num_it;
     
     % Set up the sketching
     hS = setup_sketching_handle(N,2*num_it); % s = 2*m_max
@@ -39,7 +40,7 @@ function [err] = sFOM(A, b, f, num_it, trunc_len, mgs, ex)
     Vfull(:,1) = v;
 
     % Do sFOM iters
-    for m = 1:num_it
+    for m = 1:num_it, m
     
         % Extract latest Arnoldi vector
         w = V(:,end);
@@ -77,14 +78,41 @@ function [err] = sFOM(A, b, f, num_it, trunc_len, mgs, ex)
         [SVw, SAVw, Rw] = whiten_basis(SV(:,1:m), SAV(:,1:m));
 
         % Compute sFOM approx
+        
+        % Save previous ym for stopping crit
+        % Hack
+        if m>=2
+            ym_prev = ym;
+        end
+
         SVm = SVw;
         M = SVm'*SVm;  
         coeffs = M\(f( (SVm'*SAVw)/M )*(SVm'*hS(b)));
-        appr = Vfull(:,1:m)*(Rw\coeffs);
+        ym = (Rw\coeffs);
+        appr = Vfull(:,1:m)*ym;
 
         % Get error
         err(m) = norm(appr - ex);
+
+        % Evaluate stopping criterion
+        % Hack
+        if m>=2
+            stop_crit = norm(Vfull(:,m)) / norm(SV(:,m));
+            stop_crit = stop_crit * norm( SV(:,1:m) * (ym - [ym_prev;0]) );
+    
+            if stop_crit < tol
+                final_it = m;
+                err = err(1:m);
+                disp(strcat("Converged to within tolerance in ",...
+                    num2str(final_it), " iterations. Final Estimate on error: ", num2str(stop_crit)))
+                break
+            end
+
+        end
     
     end
-
+    
+    if final_it == num_it
+        disp(strcat("Warning! Did not converge to within tolerance. Final estimate on absolute error: ", num2str(stop_crit)))
+    end
 end
