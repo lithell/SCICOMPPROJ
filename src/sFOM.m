@@ -3,12 +3,8 @@ function [err, final_it, appr] = sFOM(A, b, f, num_it, trunc_len, mgs, ex, tol, 
     %{
     Function for performing the sketched FOM iterations.
     
-    INPUT: matrix A, vector b, function handle f, 
-           number of iterations num_it, Arnolid truncation length exact solution ex
-    OUTPUT: num_it x 1 vector of errors corresponding to the 
-            approximations of f(A)b.
-
-    TODO: Change set number of iterations to exit condition.
+    Outputs the errors (optional; if ex is false, err will be false), 
+    the final iteration count, and the final approximation to f(A)b.
     %}
 
     % Initializations
@@ -117,7 +113,9 @@ function [err, final_it, appr] = sFOM(A, b, f, num_it, trunc_len, mgs, ex, tol, 
     end
     
     if final_it == num_it
-        disp(strcat("Warning! Did not converge to within tolerance. Final estimate on absolute error: ", num2str(stop_crit)))
+        if verbose
+            disp(strcat("Warning! Did not converge to within tolerance. Final estimate on iter-diff: ", num2str(stop_crit)))
+        end
     end
     
     if ex == false

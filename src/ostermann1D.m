@@ -1,8 +1,13 @@
 clc; clear all; close all;
+%{ 
+Run this file to test sFOM on the explicit EUler exponential integrator 
+for the Ostermann problem. Homogeneous Dirichlet BCs, and no source term.
+%}
+
 
 % define problem 
 N = 100; %space
-M = 500; %time
+M = 200; %time
 
 x0 = 0; xN = 1;
 h = (xN-x0)/N;
@@ -11,7 +16,7 @@ t0 = 0; tM = 0.1;
 k = (tM - t0)/M;
 
 % initial cond
-u0 = sin(2*pi*(x0+h:h:xN-h));
+u0 = sin(4*pi*(x0+h:h:xN-h));
 
 solmat = zeros(M+1, N-1);
 solmat(1,:) = u0;
@@ -31,21 +36,20 @@ J = @(U) T + spdiags(-2*U./(1+U.^2).^2, 0, N-1, N-1);
 phi = @(X) X\(expm(X)-speye(size(X)));
 
 % set params for sFOM
-max_it = floor(0.75*N/2);
+max_it = min(floor(0.75*N/2), 100);
 trunc_len = 4;
 mgs = true;
-tol = 10^-9;
-verbose = true;
+tol = 10^-11;
+verbose = false;
 
-% Dont evaluate error against exact sol in every it 
+% Don't evaluate error against exact sol in every it 
 ex = false;
 
-final_it = 0;
 for i = 1:M
 
     % forward Euler exponential integrator
     jac = J(solmat(i,:)');
-    [~, final_it, matfunceval] = sFOM(k*jac, G(solmat(i,:)'), phi, max_it, trunc_len, mgs, ex, tol, verbose);
+    [~, ~, matfunceval] = sFOM(k*jac, G(solmat(i,:)'), phi, max_it, trunc_len, mgs, ex, tol, verbose);
     solmat(i+1, :) = solmat(i,:) + k*matfunceval';
 
 end

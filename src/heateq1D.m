@@ -1,21 +1,21 @@
 clc; clear all; close all
 %{
-1D heat equation with explicit Euler exponential integrator. Meant for
-testing of sFOM.
+Run this file to test sFOM on the explicit Euler exponential integrator for
+the 1D heat eq. Homogeneous Dirichlet BCs, and no source term.
 %}
 
 % define problem 
 N = 1000; %space
-M = 800; %time
+M = 500; %time
 
 x0 = 0; xN = 1;
 h = (xN-x0)/N;
 
-t0 = 0; tM = 0.1;
+t0 = 0; tM = 0.02;
 k = (tM - t0)/M;
 
 % initial cond
-u0 = sin(2*pi*(x0+h:h:xN-h));
+u0 = sin(4*pi*(x0+h:h:xN-h));
 
 solmat = zeros(M+1, N-1);
 solmat(1,:) = u0;
@@ -32,7 +32,7 @@ max_it = floor(0.75*N/2);
 trunc_len = 4;
 mgs = true;
 tol = 10^-9;
-verbose = true;
+verbose = false;
 
 % hack
 ex_mat = phi(k*T);
