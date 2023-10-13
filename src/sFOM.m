@@ -1,4 +1,4 @@
-function [err, final_it] = sFOM(A, b, f, num_it, trunc_len, mgs, ex, tol)
+function [err, final_it, appr] = sFOM(A, b, f, num_it, trunc_len, mgs, ex, tol, verbose)
 
     %{
     Function for performing the sketched FOM iterations.
@@ -40,7 +40,7 @@ function [err, final_it] = sFOM(A, b, f, num_it, trunc_len, mgs, ex, tol)
     Vfull(:,1) = v;
 
     % Do sFOM iters
-    for m = 1:num_it, m
+    for m = 1:num_it
     
         % Extract latest Arnoldi vector
         w = V(:,end);
@@ -92,7 +92,9 @@ function [err, final_it] = sFOM(A, b, f, num_it, trunc_len, mgs, ex, tol)
         appr = Vfull(:,1:m)*ym;
 
         % Get error
-        err(m) = norm(appr - ex);
+        if ex ~= false
+            err(m) = norm(appr - ex);
+        end
 
         % Evaluate stopping criterion
         % Hack
@@ -103,8 +105,10 @@ function [err, final_it] = sFOM(A, b, f, num_it, trunc_len, mgs, ex, tol)
             if stop_crit < tol
                 final_it = m;
                 err = err(1:m);
-                disp(strcat("Converged to within tolerance in ",...
-                    num2str(final_it), " iterations. Final Estimate on error: ", num2str(stop_crit)))
+                if verbose
+                    disp(strcat("Converged to within tolerance in ",...
+                        num2str(final_it), " iterations. Final estimate on iter-diff: ", num2str(stop_crit)))
+                end
                 break
             end
 
@@ -114,5 +118,9 @@ function [err, final_it] = sFOM(A, b, f, num_it, trunc_len, mgs, ex, tol)
     
     if final_it == num_it
         disp(strcat("Warning! Did not converge to within tolerance. Final estimate on absolute error: ", num2str(stop_crit)))
+    end
+    
+    if ex == false
+        err = false;
     end
 end
